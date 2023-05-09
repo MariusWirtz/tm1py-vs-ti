@@ -1,0 +1,89 @@
+{
+  "Name": "etl",
+  "PrologProcedure": "#****Begin: Generated Statements***\r\n#****End: Generated Statements****\r\n\r\nsCube = 'Battle Cube';\r\n\r\nCubeClearData(sCube);",
+  "MetadataProcedure": "#****Begin: Generated Statements***\r\n#****End: Generated Statements****\r\n\r\n\r\nsDim = 'Battle Customer';\r\nIF ( DimIx(sDim, vBattleCustomer) = 0 );\r\n  DimensionElementComponentAdd(sDim, 'Total ' | sDim, vBattleCustomer,1);\r\nENDIF;\r\n\r\nsDim = 'Battle Product';\r\nIF ( DimIx(sDim, vBattleProduct) = 0 );\r\n  DimensionElementComponentAdd(sDim, 'Total ' | sDim, vBattleProduct,1);\r\nENDIF;",
+  "DataProcedure": "#****Begin: Generated Statements***\r\n#****End: Generated Statements****\r\n\r\n# translate city to region\r\nvBattleRegion = AttrS('Battle City', vBattleRegion, 'Region');\r\n\r\n# scale Revenue  \r\nIF ( vBattleCubeMeasure @= 'Revenue');\r\n  vValue = vValue * 1000;\r\nENDIF;\r\n\r\nCellPutN(vValue, 'Battle Cube', vBattleYear, vBattleMonth, vBattleVersion, vBattleRegion, vBattleProduct, vBattleCustomer, vBattleCubeMeasure);\r\n",
+  "EpilogProcedure": "#****Begin: Generated Statements***\r\n#****End: Generated Statements****",
+  "HasSecurityAccess": false,
+  "UIData": "",
+  "DataSource": {
+    "Type": "ASCII",
+    "asciiDecimalSeparator": ".",
+    "asciiDelimiterChar": ",",
+    "asciiDelimiterType": "Character",
+    "asciiHeaderRecords": 1,
+    "asciiQuoteCharacter": "\"",
+    "asciiThousandSeparator": ",",
+    "dataSourceNameForClient": "C:\\temp\\data.csv",
+    "dataSourceNameForServer": "C:\\temp\\data.csv"
+  },
+  "Parameters": [],
+  "Variables": [
+    {
+      "Name": "vBattleYear",
+      "Type": "String",
+      "Position": 1,
+      "StartByte": 0,
+      "EndByte": 0
+    },
+    {
+      "Name": "vBattleMonth",
+      "Type": "String",
+      "Position": 2,
+      "StartByte": 0,
+      "EndByte": 0
+    },
+    {
+      "Name": "vBattleVersion",
+      "Type": "String",
+      "Position": 3,
+      "StartByte": 0,
+      "EndByte": 0
+    },
+    {
+      "Name": "vBattleRegion",
+      "Type": "String",
+      "Position": 4,
+      "StartByte": 0,
+      "EndByte": 0
+    },
+    {
+      "Name": "vBattleProduct",
+      "Type": "String",
+      "Position": 5,
+      "StartByte": 0,
+      "EndByte": 0
+    },
+    {
+      "Name": "vBattleCustomer",
+      "Type": "String",
+      "Position": 6,
+      "StartByte": 0,
+      "EndByte": 0
+    },
+    {
+      "Name": "vBattleCubeMeasure",
+      "Type": "String",
+      "Position": 7,
+      "StartByte": 0,
+      "EndByte": 0
+    },
+    {
+      "Name": "vValue",
+      "Type": "Numeric",
+      "Position": 8,
+      "StartByte": 0,
+      "EndByte": 0
+    }
+  ],
+  "VariablesUIData": [
+    "VarType=32\fColType=827\f",
+    "VarType=32\fColType=827\f",
+    "VarType=32\fColType=827\f",
+    "VarType=32\fColType=827\f",
+    "VarType=32\fColType=827\f",
+    "VarType=32\fColType=827\f",
+    "VarType=32\fColType=827\f",
+    "VarType=33\fColType=827\f"
+  ]
+}
