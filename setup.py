@@ -7,7 +7,7 @@ from TM1py import TM1Service, Dimension, Hierarchy, Cube, ElementAttribute, Proc
 
 from constants import TM1_PARAMS, CUBE_NAME, YEARS, MONTHS, VERSIONS, REGIONS, PRODUCTS, CUSTOMERS, MEASURES, \
     DIMENSION_NAMES, DIMENSION_BATTLE_CUSTOMER, DIMENSION_BATTLE_REGION, DIMENSION_BATTLE_PRODUCT, CITIES, \
-    DIMENSION_BATTLE_CITY
+    DIMENSION_BATTLE_CITY, FILE_NAME
 
 MDX = """
     SELECT 
@@ -29,7 +29,14 @@ WHERE
     """
 
 
-def setup():
+def setup(size=0.1, delete_elements=True):
+    """ For Size pass a value between 0 and 1.
+    1: 3974400 records
+    0.1: 397440 records
+    etc.
+
+    """
+
     with TM1Service(**TM1_PARAMS) as tm1:
         # create ETL process
         with open("process.json", "r") as file:
@@ -38,13 +45,14 @@ def setup():
 
         if tm1.cubes.exists(CUBE_NAME):
             tm1.cubes.delete(CUBE_NAME)
-        build_main_cube(tm1)
+        num_records = build_main_cube_and_files(tm1, delete_elements, size)
 
         build_city_dimension(tm1)
 
         # execute dummy MDX to avoid locking on first request
         tm1.cells.execute_mdx_cellcount(MDX)
 
+    return num_records
 
 def build_city_dimension(tm1):
     create_dimension(tm1, DIMENSION_BATTLE_CITY, CITIES)
@@ -63,21 +71,23 @@ def build_city_dimension(tm1):
     tm1.cells.write("}ElementAttributes_" + DIMENSION_BATTLE_CITY, cells)
 
 
-def build_main_cube(tm1):
+def build_main_cube_and_files(tm1, delete_elements: bool, size: float):
     records = [DIMENSION_NAMES + ["Value"]]
+
+    customers = CUSTOMERS[:int(len(CUSTOMERS) * size)]
     # create csv
     for year in YEARS:
         for month in MONTHS:
             for version in VERSIONS:
                 for city in CITIES:
                     for product in PRODUCTS:
-                        for customer in CUSTOMERS:
+                        for customer in customers:
                             for measure in MEASURES:
                                 record = [year, month, version, city, product, customer, measure, '1']
                                 records.append(record)
 
     # write local data.csv
-    with open("data.csv", "w", newline='', encoding="utf-8") as file:
+    with open(FILE_NAME, "w", newline='', encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerows(records)
 
@@ -88,7 +98,7 @@ def build_main_cube(tm1):
         writer = csv.writer(file)
         writer.writerows(records)
 
-    df = pd.read_csv("data.csv", dtype={dimension_name: str for dimension_name in DIMENSION_NAMES})
+    df = pd.read_csv(FILE_NAME, dtype={dimension_name: str for dimension_name in DIMENSION_NAMES})
 
     for dimension_name in DIMENSION_NAMES:
         if dimension_name == DIMENSION_BATTLE_REGION:
@@ -101,13 +111,21 @@ def build_main_cube(tm1):
     cube = Cube(CUBE_NAME, DIMENSION_NAMES)
     tm1.cubes.create(cube)
 
+    if not delete_elements:
+        return
+
     # delete some elements in each dimension
-    for customer in random.sample(CUSTOMERS, 10):
+    for customer in random.sample(tm1.elements.get_leaf_element_names(
+            DIMENSION_BATTLE_CUSTOMER,
+            DIMENSION_BATTLE_CUSTOMER), int(10 * size)):
         tm1.elements.delete(DIMENSION_BATTLE_CUSTOMER, DIMENSION_BATTLE_CUSTOMER, customer)
 
-    for product in random.sample(PRODUCTS, 2):
+    for product in random.sample(tm1.elements.get_leaf_element_names(
+            DIMENSION_BATTLE_PRODUCT,
+            DIMENSION_BATTLE_PRODUCT), int(2 * size)):
         tm1.elements.delete(DIMENSION_BATTLE_PRODUCT, DIMENSION_BATTLE_PRODUCT, product)
 
+    return len(df.index)
 
 def create_dimension(tm1, dimension_name, element_names):
     if tm1.dimensions.exists(dimension_name):

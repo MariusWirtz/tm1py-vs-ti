@@ -2,7 +2,7 @@
   "Name": "etl",
   "PrologProcedure": "#****Begin: Generated Statements***\r\n#****End: Generated Statements****\r\n\r\nsCube = 'Battle Cube';\r\n\r\nCubeClearData(sCube);",
   "MetadataProcedure": "#****Begin: Generated Statements***\r\n#****End: Generated Statements****\r\n\r\n\r\nsDim = 'Battle Customer';\r\nIF ( DimIx(sDim, vBattleCustomer) = 0 );\r\n  DimensionElementComponentAdd(sDim, 'Total ' | sDim, vBattleCustomer,1);\r\nENDIF;\r\n\r\nsDim = 'Battle Product';\r\nIF ( DimIx(sDim, vBattleProduct) = 0 );\r\n  DimensionElementComponentAdd(sDim, 'Total ' | sDim, vBattleProduct,1);\r\nENDIF;",
-  "DataProcedure": "#****Begin: Generated Statements***\r\n#****End: Generated Statements****\r\n\r\n# translate city to region\r\nvBattleRegion = AttrS('Battle City', vBattleRegion, 'Region');\r\n\r\n# scale Revenue  \r\nIF ( vBattleCubeMeasure @= 'Revenue');\r\n  vValue = vValue * 1000;\r\nENDIF;\r\n\r\nCellPutN(vValue, 'Battle Cube', vBattleYear, vBattleMonth, vBattleVersion, vBattleRegion, vBattleProduct, vBattleCustomer, vBattleCubeMeasure);\r\n",
+  "DataProcedure": "#****Begin: Generated Statements***\r\n#****End: Generated Statements****\r\n\r\n# translate city to region\r\nvBattleRegion = CellGetS('}ElementAttributes_Battle City', vBattleRegion, 'Region');\r\n\r\n# scale Revenue  \r\nIF ( vBattleCubeMeasure @= 'Revenue');\r\n  vValue = vValue * 1000;\r\nENDIF;\r\n\r\nCellPutN(vValue, 'Battle Cube', vBattleYear, vBattleMonth, vBattleVersion, vBattleRegion, vBattleProduct, vBattleCustomer, vBattleCubeMeasure);\r\n",
   "EpilogProcedure": "#****Begin: Generated Statements***\r\n#****End: Generated Statements****",
   "HasSecurityAccess": false,
   "UIData": "",

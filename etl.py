@@ -1,15 +1,14 @@
 import logging
-import time
 
 import pandas as pd
-from TM1py import TM1Service, Element
+from TM1py import Element
 
-from constants import TM1_PARAMS, CUBE_NAME, DIMENSION_NAMES, DIMENSION_BATTLE_CUBE_MEASURE, DIMENSION_BATTLE_CUSTOMER, \
+from constants import CUBE_NAME, DIMENSION_NAMES, DIMENSION_BATTLE_CUBE_MEASURE, DIMENSION_BATTLE_CUSTOMER, \
     DIMENSION_BATTLE_PRODUCT, DIMENSION_BATTLE_CITY
-from utils import configure_logging
 
 
 class Etl:
+    MAX_WORKERS = 10
 
     def __init__(self, tm1, file_name):
         self.tm1 = tm1
@@ -32,7 +31,13 @@ class Etl:
         logging.info("Completed Write")
 
     def _load_data(self, df):
-        self.tm1.cells.write_dataframe_async(CUBE_NAME, df, slice_size_of_dataframe=400_000)
+        chunk_size = int(len(df.index) / self.MAX_WORKERS)
+
+        self.tm1.cells.write_dataframe_async(
+            cube_name=CUBE_NAME,
+            data=df,
+            slice_size_of_dataframe=chunk_size,
+            max_workers=self.MAX_WORKERS)
 
     def _clear(self):
         self.tm1.processes.execute_ti_code(lines_prolog=[f"CubeClearData('{CUBE_NAME}');"])
@@ -98,4 +103,3 @@ class EtlWithoutAsync(Etl):
 
     def _load_data(self, df):
         self.tm1.cells.write_dataframe(CUBE_NAME, df, use_blob=True)
-
